@@ -1,14 +1,24 @@
 package com.example.otelplus.model;
 
-import jakarta.persistence.*; 
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
 @Getter
 @Setter
@@ -36,14 +46,14 @@ public class Kullanici implements UserDetails {
     @Column(name = "kayit_tarihi", updatable = false)
     private LocalDateTime kayitTarihi;
 
-   .
+    
     @OneToOne(mappedBy = "kullanici", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private ProfilBilgileri profilBilgileri;
 
     @OneToOne(mappedBy = "kullanici", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Ayarlar ayarlar;
 
-    @PrePersist
+    @PrePersist 
     protected void onCreate() {
         this.kayitTarihi = LocalDateTime.now();
     }
@@ -56,7 +66,7 @@ public class Kullanici implements UserDetails {
 
     @Override
     public String getPassword() {
-        return this.kullaniciSifre;
+        return this.kullaniciSifre; 
     }
 
     @Override
@@ -64,7 +74,6 @@ public class Kullanici implements UserDetails {
         return this.kullaniciAdi; 
     }
 
-    
     
     @Override
     public boolean isAccountNonExpired() {

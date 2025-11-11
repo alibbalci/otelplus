@@ -29,7 +29,7 @@ public class Ayarlar {
     @Column(name = "bildirim")
     private Boolean bildirim;
 
-    // ----- İLİŞKİ SAHİBİ (Adım 6) -----
+    
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "kullanici_id", referencedColumnName = "kullanici_id", nullable = false, unique = true)
     private Kullanici kullanici;

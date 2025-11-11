@@ -43,8 +43,6 @@ public class ProfilBilgileri {
     @Column(name = "kullanici_biyografi")
     private String kullaniciBiyografi;
     
-    // ----- İLİŞKİ SAHİBİ (Adım 6) -----
-    // Bu, "profil_bilgileri" tablosundaki "kullanici_id" sütununu yönetir.
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "kullanici_id", referencedColumnName = "kullanici_id", nullable = false, unique = true)
     private Kullanici kullanici;

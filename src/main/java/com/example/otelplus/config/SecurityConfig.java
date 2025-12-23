@@ -9,23 +9,20 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.example.otelplus.repository.KullaniciRepository;
-import com.example.otelplus.security.JwtAuthenticationFilter;
 
 import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-@RequiredArgsConstructor 
+@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final KullaniciRepository kullaniciRepository;
@@ -54,17 +51,18 @@ public class SecurityConfig {
         return config.getAuthenticationManager();
     }
 
+    // --- DEĞİŞTİRİLEN KISIM BURASI ---
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthFilter) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        
         http
-                .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
-                        .anyRequest().authenticated()
-                )
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class); 
+            .csrf(csrf -> csrf.disable()) // Test için güvenlik önlemini kapat
+            .authorizeHttpRequests(auth -> auth
+                .anyRequest().permitAll() // HERKESE, HER YERE GİRİŞ İZNİ VER (Proxy testi için)
+            );
+        
+        // Not: JWT Filtresi ve Session yönetimi kaldırıldı.
+        // Artık güvenlik kontrolünü sadece senin yazdığın "AdminHotelProxy" sınıfı yapacak.
 
         return http.build();
     }

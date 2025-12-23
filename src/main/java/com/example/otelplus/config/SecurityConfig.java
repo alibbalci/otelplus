@@ -20,16 +20,18 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import com.example.otelplus.repository.KullaniciRepository;
 import com.example.otelplus.security.JwtAuthenticationFilter;
 
-import lombok.RequiredArgsConstructor;
+
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-@RequiredArgsConstructor 
+
 public class SecurityConfig {
 
     private final KullaniciRepository kullaniciRepository;
-
+    public SecurityConfig(KullaniciRepository kullaniciRepository) {
+        this.kullaniciRepository = kullaniciRepository;
+    }
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

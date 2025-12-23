@@ -29,7 +29,7 @@ public class OtelYorumController {
     // ---------------------------------------------------------
     // 2) Yeni yorum ekleme
     // ---------------------------------------------------------
-    @PostMapping
+    @PostMapping("/otel/{otelId}/yorumekle")
     public OtelYorumDto addYorum(@RequestBody OtelYorumDtoIU dtoIU) {
         return yorumService.addYorum(dtoIU);
     }

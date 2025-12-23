@@ -24,4 +24,13 @@ public class RestoranServiceImpl implements RestoranService {
                 .map(RestoranMapper::toDto)
                 .toList();
     }
+
+    @Override
+    public List<RestoranDto> getRestoranlarByOtelId(Integer otelId) {
+        // Düzeltilmiş repository metodunu çağırıyoruz
+        return repository.findByOtelId(otelId)
+                .stream()
+                .map(RestoranMapper::toDto)
+                .toList();
+    }
 }

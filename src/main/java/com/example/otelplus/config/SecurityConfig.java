@@ -17,22 +17,16 @@ import org.springframework.security.web.SecurityFilterChain;
 
 import com.example.otelplus.repository.KullaniciRepository;
 
-
+import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-<<<<<<< HEAD
 @RequiredArgsConstructor
-=======
-
->>>>>>> cf418f4fbac17a8b850c1402530289419992daf4
 public class SecurityConfig {
 
     private final KullaniciRepository kullaniciRepository;
-    public SecurityConfig(KullaniciRepository kullaniciRepository) {
-        this.kullaniciRepository = kullaniciRepository;
-    }
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -57,19 +51,13 @@ public class SecurityConfig {
         return config.getAuthenticationManager();
     }
 
-    // --- DEĞİŞTİRİLEN KISIM BURASI ---
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        
         http
-            .csrf(csrf -> csrf.disable()) // Test için güvenlik önlemini kapat
+            .csrf(csrf -> csrf.disable()) // Güvenlik önlemini kapat
             .authorizeHttpRequests(auth -> auth
-                .anyRequest().permitAll() // HERKESE, HER YERE GİRİŞ İZNİ VER (Proxy testi için)
+                .anyRequest().permitAll() // HERKESE İZİN VER (Proxy testi için)
             );
-        
-        // Not: JWT Filtresi ve Session yönetimi kaldırıldı.
-        // Artık güvenlik kontrolünü sadece senin yazdığın "AdminHotelProxy" sınıfı yapacak.
-
         return http.build();
     }
 }

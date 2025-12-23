@@ -1,10 +1,8 @@
 package com.example.otelplus.config;
 
-import com.example.otelplus.repository.KullaniciRepository;
-import com.example.otelplus.security.JwtAuthenticationFilter;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -20,6 +18,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.example.otelplus.repository.KullaniciRepository;
+import com.example.otelplus.security.JwtAuthenticationFilter;
+
+import lombok.RequiredArgsConstructor;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -27,7 +30,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final KullaniciRepository kullaniciRepository;
-    private final JwtAuthenticationFilter jwtAuthFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -54,15 +56,29 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+                                                   JwtAuthenticationFilter jwtAuthFilter) throws Exception {
+
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+
+                        // ----------- AUTH ENDPOINTLERİ HERKESE AÇIK -----------
                         .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
+
+                        // ----------- GET İSTEĞİ OLAN GENEL ENDPOINTLER -----------
+                        .requestMatchers(HttpMethod.GET, "/api/oteller/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/odalar/**").permitAll()
+
+                        // ----------- KALAN TÜM ENDPOINTLERDE JWT ZORUNLU -----------
                         .anyRequest().authenticated()
                 )
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
                 .authenticationProvider(authenticationProvider())
+
+                // JWT filtresi UsernamePasswordAuthenticationFilter'dan ÖNCE çalışmalı
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

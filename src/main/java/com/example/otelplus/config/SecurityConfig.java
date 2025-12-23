@@ -17,16 +17,22 @@ import org.springframework.security.web.SecurityFilterChain;
 
 import com.example.otelplus.repository.KullaniciRepository;
 
-import lombok.RequiredArgsConstructor;
+
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+<<<<<<< HEAD
 @RequiredArgsConstructor
+=======
+
+>>>>>>> cf418f4fbac17a8b850c1402530289419992daf4
 public class SecurityConfig {
 
     private final KullaniciRepository kullaniciRepository;
-
+    public SecurityConfig(KullaniciRepository kullaniciRepository) {
+        this.kullaniciRepository = kullaniciRepository;
+    }
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

@@ -27,17 +27,12 @@ public class OtelController {
         this.otelService = otelService;
     }
 
-    // ----------------------------------------------------
-    // 1) Tüm otelleri listele (otel kartları için)
-    // ----------------------------------------------------
+
     @GetMapping
     public List<OtelDto> getAllOtels() {
         return otelService.getAllOtels();
     }
 
-    // ----------------------------------------------------
-    // 2) ID ile detay (otel detay sayfası için)
-    // ----------------------------------------------------
     @GetMapping("/{id}")
     public OtelDetayDto getOtelById(@PathVariable Integer id) {
         return otelService.getOtelById(id);

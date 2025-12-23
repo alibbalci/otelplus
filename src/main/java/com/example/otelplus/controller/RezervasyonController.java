@@ -17,25 +17,11 @@ public class RezervasyonController {
         this.rezervasyonService = rezervasyonService;
     }
 
-    // --------------------------------------------------------
-    // 1) Yeni rezervasyon oluştur
+
     @PostMapping("/rezervasyon")
     public RezervasyonDto createRezervasyon(@RequestBody RezervasyonDtoIU dtoIU) {
-        return rezervasyonService.createRezervasyon(dtoIU); // Otomatik 200 OK döner
+        return rezervasyonService.createRezervasyon(dtoIU);
     }
-
-    // --------------------------------------------------------
-    // 2) ID ile rezervasyon getir
-    // --------------------------------------------------------
-    @GetMapping("rezervasyon/{id}")
-    public RezervasyonDto getByRezervasyonId(@PathVariable Integer id) {
-        return rezervasyonService.getById(id); // Otomatik olarak 200 OK ve JSON döner
-    }
-
-    // --------------------------------------------------------
-    // 3) Kullanıcıya ait tüm rezervasyonlar (Profil ekranı için)
-    // --------------------------------------------------------
-
 
     @GetMapping("/kullanici/{kullaniciId}")
     public List<RezervasyonDto> getByKullanici(@PathVariable Integer kullaniciId) {
@@ -50,9 +36,7 @@ public class RezervasyonController {
         rezervasyonService.delete(id);
     }
 
-    // --------------------------------------------------------
-    // 5) Rezervasyon tarih güncelleme (opsiyonel)
-    // --------------------------------------------------------
+
     @PutMapping("/{id}")
     public RezervasyonDto update(
             @PathVariable Integer id,           // Adresten ID'yi kapar (Hangi rezervasyon?)

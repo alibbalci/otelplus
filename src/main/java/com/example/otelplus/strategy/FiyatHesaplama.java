@@ -1,7 +1,7 @@
 package com.example.otelplus.strategy;
 
-import com.example.otelplus.model.Oda;
+import java.math.BigDecimal;
 
 public interface FiyatHesaplama {
-    double  hesapla(Oda oda);
+    BigDecimal hesapla(BigDecimal temelFiyat);
 }

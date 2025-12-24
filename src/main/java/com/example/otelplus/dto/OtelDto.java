@@ -8,6 +8,7 @@ public class OtelDto {
     private String otelAdi;
     private String sehir;
     private Double ortalamaPuan ;
+    private Double minFiyat;
 
 
 

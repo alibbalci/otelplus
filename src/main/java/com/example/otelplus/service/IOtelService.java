@@ -10,5 +10,6 @@ public interface IOtelService {
 
     List<OtelDto> getAllOtels();
     OtelDetayDto getOtelById(Integer id);
+    List<OtelDto> searchBySehirFn(String sehir, String sort);
 
 }

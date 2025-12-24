@@ -8,6 +8,8 @@ import com.example.otelplus.model.Otel;
 import com.example.otelplus.repository.IOtelRepository;
 import com.example.otelplus.service.IOtelService;
 import org.springframework.stereotype.Service;
+import com.example.otelplus.dto.OtelArama;
+
 
 import java.util.List;
 
@@ -38,7 +40,6 @@ public class OtelService implements IOtelService {
     public OtelDetayDto getOtelById(Integer id) {
         Otel otel = otelRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Otel bulunamadı: " + id));
-
         return toOtelDetayDto(otel);
     }
 
@@ -83,7 +84,8 @@ public class OtelService implements IOtelService {
                         .map(oda -> new OdaDto(
                                 oda.getOdaId(),
                                 oda.getOdaTipi(),
-                                oda.getKapasite()
+                                oda.getKapasite(),
+                                oda.getFiyat()
                         ))
                         .toList()
         );
@@ -122,5 +124,24 @@ public class OtelService implements IOtelService {
                 .mapToDouble(y -> y.getPuan())
                 .average()
                 .orElse(0.0);
+    }
+    @Override
+    public List<OtelDto> searchBySehirFn(String sehir, String sort) {
+        return otelRepository.searchBySehirFn(sehir, sort)
+                .stream()
+                .map(p -> {
+                    OtelDto dto = new OtelDto();
+                    dto.setOtelId(p.getOtel_id());
+                    dto.setOtelAdi(p.getOtel_adi());
+                    dto.setSehir(p.getSehir());
+                    dto.setOrtalamaPuan(
+                            p.getOrt_puan() != null ? p.getOrt_puan().doubleValue() : 0.0
+                    );
+                    dto.setMinFiyat(
+                            p.getMin_fiyat() != null ? p.getMin_fiyat().doubleValue() : 0.0
+                    );
+                    return dto;
+                })
+                .toList();
     }
 }

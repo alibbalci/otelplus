@@ -3,6 +3,7 @@ package com.example.otelplus.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
@@ -32,5 +33,5 @@ public class Rezervasyon {
     private LocalDate cikisTarihi;
 
     @Column(name = "rezervasyon_maliyeti", nullable = false)
-    private Double rezervasyonMaliyeti;
+    private BigDecimal rezervasyonMaliyeti;
 }

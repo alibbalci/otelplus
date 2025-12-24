@@ -27,4 +27,13 @@ public class OtelController {
     public OtelDetayDto getOtelById(@PathVariable Integer id) {
         return otelService.getOtelById(id);
     }
+
+    @GetMapping("/search-fn")
+    public List<OtelDto> searchWithFunction(
+            @RequestParam(required = false) String sehir,
+            @RequestParam(defaultValue = "puan_desc") String sort) {
+
+        return otelService.searchBySehirFn(sehir, sort);
+    }
+
 }

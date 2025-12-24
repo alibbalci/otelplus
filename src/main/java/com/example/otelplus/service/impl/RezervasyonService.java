@@ -4,12 +4,16 @@ import com.example.otelplus.dto.RezervasyonDto;
 import com.example.otelplus.dto.RezervasyonDtoIU;
 import com.example.otelplus.model.Oda;
 import com.example.otelplus.model.Rezervasyon;
+import com.example.otelplus.observer.RezervasyonSubject;
 import com.example.otelplus.repository.IOdaRepository;
 import com.example.otelplus.repository.IRezervasyonRepository;
 import com.example.otelplus.service.IRezervasyonService;
-import com.example.otelplus.strategy.*;
+import com.example.otelplus.strategy.FiyatHesaplama;
+import com.example.otelplus.strategy.FiyatHesaplayiciContext;
+import com.example.otelplus.factory.FiyatStrategyFactory;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -18,21 +22,31 @@ public class RezervasyonService implements IRezervasyonService {
 
     private final IRezervasyonRepository rezervasyonRepository;
     private final IOdaRepository odaRepository;
+    private final RezervasyonSubject subject;   // ✔ Observer subject
 
     public RezervasyonService(IRezervasyonRepository rezervasyonRepository,
-                              IOdaRepository odaRepository) {
+                              IOdaRepository odaRepository,
+                              RezervasyonSubject subject) {
         this.rezervasyonRepository = rezervasyonRepository;
         this.odaRepository = odaRepository;
+        this.subject = subject;
     }
 
+    // -------------------------------------------------------------------
+    // ✔ create — Yeni rezervasyon oluştur
+    // -------------------------------------------------------------------
     @Override
     public RezervasyonDto createRezervasyon(RezervasyonDtoIU dtoIU) {
 
         Oda oda = odaRepository.findById(dtoIU.getOdaId())
                 .orElseThrow(() -> new RuntimeException("Oda bulunamadı."));
 
-        checkOdaUygunluk(dtoIU.getOdaId(), dtoIU.getGirisTarihi(), dtoIU.getCikisTarihi());
-        tarihleriKontrolEt(dtoIU.getGirisTarihi(), dtoIU.getCikisTarihi());
+        checkOdaUygunluk(dtoIU.getOdaId(),
+                dtoIU.getGirisTarihi(),
+                dtoIU.getCikisTarihi());
+
+        tarihleriKontrolEt(dtoIU.getGirisTarihi(),
+                dtoIU.getCikisTarihi());
 
         Rezervasyon rezervasyon = new Rezervasyon();
         rezervasyon.setKullaniciId(dtoIU.getKullaniciId());
@@ -40,50 +54,34 @@ public class RezervasyonService implements IRezervasyonService {
         rezervasyon.setGirisTarihi(dtoIU.getGirisTarihi());
         rezervasyon.setCikisTarihi(dtoIU.getCikisTarihi());
 
-        double fiyat = hesaplaFiyat(oda);
+        // ✔ Factory + Strategy ile fiyat hesaplama
+        BigDecimal fiyat = hesaplaFiyat(oda, dtoIU.getGirisTarihi());
         rezervasyon.setRezervasyonMaliyeti(fiyat);
 
         Rezervasyon saved = rezervasyonRepository.save(rezervasyon);
 
+        // ✔ Observer’ları tetikle
+        subject.notifyObservers(saved);
+
         return toDto(saved);
     }
 
-
-    // -------------------------------------------------------------------
-    // ✔ getById — Tek rezervasyon getir
     // -------------------------------------------------------------------
     @Override
     public RezervasyonDto getById(Integer id) {
         Rezervasyon r = rezervasyonRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Rezervasyon bulunamadı."));
-
         return toDto(r);
     }
 
-
-    // -------------------------------------------------------------------
-    // ✔ getByKullaniciId — Bir kullanıcının tüm rezervasyonları
     // -------------------------------------------------------------------
     @Override
     public List<RezervasyonDto> getByKullaniciId(Integer kullaniciId) {
-
         List<Rezervasyon> rezervasyonlar =
                 rezervasyonRepository.findByKullaniciId(kullaniciId);
-
-
         return rezervasyonlar.stream().map(this::toDto).toList();
     }
 
-
-    private void tarihleriKontrolEt(LocalDate giris, LocalDate cikis) {
-        if (cikis.isBefore(giris)) {
-            throw new RuntimeException("Çıkış tarihi giriş tarihinden önce olamaz.");
-        }
-    }
-
-
-    // -------------------------------------------------------------------
-    // ✔ delete — Rezervasyon iptali
     // -------------------------------------------------------------------
     @Override
     public void delete(Integer id) {
@@ -92,9 +90,6 @@ public class RezervasyonService implements IRezervasyonService {
         rezervasyonRepository.delete(r);
     }
 
-
-    // -------------------------------------------------------------------
-    // ✔ update — Tarih güncelleme + yeniden uygunluk kontrolü
     // -------------------------------------------------------------------
     @Override
     public RezervasyonDto update(Integer id, RezervasyonDtoIU dtoIU) {
@@ -102,8 +97,9 @@ public class RezervasyonService implements IRezervasyonService {
         Rezervasyon rezervasyon = rezervasyonRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Rezervasyon bulunamadı."));
 
-        // Tarih değişmişse uygunluk kontrolü yap
-        checkOdaUygunluk(dtoIU.getOdaId(), dtoIU.getGirisTarihi(), dtoIU.getCikisTarihi());
+        checkOdaUygunluk(dtoIU.getOdaId(),
+                dtoIU.getGirisTarihi(),
+                dtoIU.getCikisTarihi());
 
         Oda oda = odaRepository.findById(dtoIU.getOdaId())
                 .orElseThrow(() -> new RuntimeException("Oda bulunamadı."));
@@ -113,18 +109,25 @@ public class RezervasyonService implements IRezervasyonService {
         rezervasyon.setCikisTarihi(dtoIU.getCikisTarihi());
         rezervasyon.setKullaniciId(dtoIU.getKullaniciId());
 
-        // fiyat yeniden hesaplanır
-        rezervasyon.setRezervasyonMaliyeti(hesaplaFiyat(oda));
+        // ✔ Factory + Strategy ile yeniden hesapla
+        BigDecimal fiyat = hesaplaFiyat(oda, dtoIU.getGirisTarihi());
+        rezervasyon.setRezervasyonMaliyeti(fiyat);
 
         Rezervasyon updated = rezervasyonRepository.save(rezervasyon);
-
         return toDto(updated);
     }
 
+    // ================== YARDIMCI METOTLAR ==================
 
-    // ---------------- YARDIMCI METOTLAR ----------------
+    private void tarihleriKontrolEt(LocalDate giris, LocalDate cikis) {
+        if (cikis.isBefore(giris)) {
+            throw new RuntimeException("Çıkış tarihi giriş tarihinden önce olamaz.");
+        }
+    }
 
-    private void checkOdaUygunluk(Integer odaId, LocalDate giris, LocalDate cikis) {
+    private void checkOdaUygunluk(Integer odaId,
+                                  LocalDate giris,
+                                  LocalDate cikis) {
 
         List<Rezervasyon> cakisanlar =
                 rezervasyonRepository.tarihCakisaniBul(odaId, giris, cikis);
@@ -134,25 +137,21 @@ public class RezervasyonService implements IRezervasyonService {
         }
     }
 
-    private FiyatHesaplama stratejiSec(Oda oda) {
-        return switch (oda.getOdaTipi().toLowerCase()) {
-            case "standart" -> new StandartOda();
-            case "deluxe"   -> new DeluxeOda();
-            case "suite"    -> new SuitOda();
-            default         -> new DefaultOda();
-        };
+    // ✔ Factory kullanan fiyat hesaplama
+    private BigDecimal hesaplaFiyat(Oda oda, LocalDate girisTarihi) {
+
+        BigDecimal temelFiyat = oda.getFiyat();
+
+        FiyatHesaplama strategy =
+                FiyatStrategyFactory.getStrategy(girisTarihi);
+
+        FiyatHesaplayiciContext context =
+                new FiyatHesaplayiciContext(strategy);
+
+        return context.hesapla(temelFiyat);
     }
 
-    private double hesaplaFiyat(Oda oda) {
-        FiyatHesaplama strategy = stratejiSec(oda);
-        FiyatHesaplayiciContext context = new FiyatHesaplayiciContext(strategy);
-        return context.hesapla(oda);
-    }
-
-
-
-
-
+    // ✔ Entity → DTO
     private RezervasyonDto toDto(Rezervasyon r) {
         RezervasyonDto dto = new RezervasyonDto();
         dto.setRezervasyonId(r.getRezervasyonId());

@@ -1,11 +1,7 @@
 package com.example.otelplus.model;
 
-
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Table(name = "otel_ozellik")
@@ -13,18 +9,18 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-
 public class OtelOzellik {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "ozellik_id")
-    private Integer ozellikId;
-
-    @Column(name="ozellik_adi",nullable = false)
-    private String ozellikAdi;
+    @EmbeddedId
+    private OtelOzellikId id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "otel_id",nullable = false)
+    @MapsId("otelId")
+    @JoinColumn(name = "otel_id")
     private Otel otel;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("ozellikId")
+    @JoinColumn(name = "ozellik_id")
+    private Ozellik ozellik;
 }

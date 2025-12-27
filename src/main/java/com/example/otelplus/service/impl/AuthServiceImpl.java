@@ -5,8 +5,6 @@ import com.example.otelplus.dto.auth.LoginRequestDTO;
 import com.example.otelplus.dto.auth.RegisterRequestDTO;
 import com.example.otelplus.exception.UserAlreadyExistsException;
 import com.example.otelplus.model.Kullanici;
-import com.example.otelplus.model.Ayarlar;
-import com.example.otelplus.model.ProfilBilgileri;
 import com.example.otelplus.repository.KullaniciRepository;
 import com.example.otelplus.security.JwtTokenProvider;
 import com.example.otelplus.service.AuthService;
@@ -40,39 +38,39 @@ public class AuthServiceImpl implements AuthService {
             throw new UserAlreadyExistsException("Bu e-posta adresi zaten kayıtlı: " + requestDTO.getKullaniciEposta());
         }
 
-        Kullanici kullanici = new Kullanici();
-        kullanici.setKullaniciAdi(requestDTO.getKullaniciAdi());
-        kullanici.setKullaniciEposta(requestDTO.getKullaniciEposta());
-        kullanici.setKullaniciSifre(passwordEncoder.encode(requestDTO.getKullaniciSifre()));
-        kullanici.setKullaniciCinsiyet(requestDTO.getKullaniciCinsiyet());
+        // 🔐 Şifre encode
+        String encodedPassword = passwordEncoder.encode(requestDTO.getKullaniciSifre());
 
-        ProfilBilgileri profil = new ProfilBilgileri();
-        profil.setKullanici(kullanici);
-        kullanici.setProfilBilgileri(profil);
-
-        Ayarlar ayarlar = new Ayarlar();
-        ayarlar.setKullanici(kullanici);
-        ayarlar.setTema("default");
-        ayarlar.setBildirim(true);
-        kullanici.setAyarlar(ayarlar);
-
-        kullaniciRepository.save(kullanici);
+        // ✅ PostgreSQL procedure çağrısı
+        kullaniciRepository.spKullaniciOlustur(
+                requestDTO.getKullaniciAdi(),
+                requestDTO.getKullaniciEposta(),
+                encodedPassword,
+                requestDTO.getKullaniciCinsiyet(),
+                requestDTO.getIsim(),
+                requestDTO.getSoyisim(),
+                requestDTO.getDogumTarihi(),
+                requestDTO.getUlke()
+        );
     }
 
     @Override
     public AuthResponseDTO login(LoginRequestDTO requestDTO) {
 
         Authentication authentication = authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(
-                    requestDTO.getKullaniciAdi(),
-                    requestDTO.getKullaniciSifre()
-            )
+                new UsernamePasswordAuthenticationToken(
+                        requestDTO.getKullaniciAdi(),
+                        requestDTO.getKullaniciSifre()
+                )
         );
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         String token = jwtTokenProvider.generateToken(authentication);
 
-        return new AuthResponseDTO(token, requestDTO.getKullaniciAdi());
+        Kullanici kullanici = kullaniciRepository.findByKullaniciAdi(requestDTO.getKullaniciAdi())
+                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı: " + requestDTO.getKullaniciAdi()));
+
+        return new AuthResponseDTO(token, requestDTO.getKullaniciAdi(), kullanici.getKullaniciId());
     }
 }

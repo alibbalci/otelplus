@@ -11,5 +11,6 @@ public interface IOtelService {
     List<OtelDto> getAllOtels();
     OtelDetayDto getOtelById(Integer id);
     List<OtelDto> searchBySehirFn(String sehir, String sort);
-
+    void deleteById(Integer id);
+    OtelDto otelEkle(OtelDto dto);
 }

@@ -4,6 +4,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.example.otelplus.model.Sehir;
 
-public interface SehirRepository extends JpaRepository<Sehir, Integer> {
+import java.util.Optional;
 
+public interface SehirRepository extends JpaRepository<Sehir, Integer> {
+    Optional<Sehir> findByAdiIgnoreCase(String adi);
 }

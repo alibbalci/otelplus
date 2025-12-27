@@ -3,6 +3,8 @@ package com.example.otelplus.controller;
 import com.example.otelplus.dto.OtelDto;
 import com.example.otelplus.dto.OtelDetayDto;
 import com.example.otelplus.service.IOtelService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,7 +18,6 @@ public class OtelController {
     public OtelController(IOtelService otelService) {
         this.otelService = otelService;
     }
-
 
     @GetMapping
     public List<OtelDto> getAllOtels() {
@@ -36,4 +37,15 @@ public class OtelController {
         return otelService.searchBySehirFn(sehir, sort);
     }
 
+    // ✅ DELETE: /api/oteller/{id}
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteOtel(@PathVariable Integer id,
+                                           @RequestParam String role) {
+        if (!"ADMIN".equalsIgnoreCase(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        otelService.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
 }

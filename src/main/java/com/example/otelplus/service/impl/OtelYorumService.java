@@ -2,10 +2,12 @@ package com.example.otelplus.service.impl;
 
 import com.example.otelplus.dto.OtelYorumDto;
 import com.example.otelplus.dto.OtelYorumDtoIU;
+import com.example.otelplus.model.Kullanici;
 import com.example.otelplus.model.Otel;
 import com.example.otelplus.model.OtelYorum;
 import com.example.otelplus.repository.IOtelRepository;
 import com.example.otelplus.repository.IYorumRepository;
+import com.example.otelplus.repository.KullaniciRepository;
 import com.example.otelplus.service.IOtelYorumService;
 import org.springframework.stereotype.Service;
 
@@ -16,11 +18,14 @@ public class OtelYorumService implements IOtelYorumService {
 
     private final IYorumRepository yorumRepository;
     private final IOtelRepository otelRepository;
+    private final KullaniciRepository kullaniciRepository;
 
     public OtelYorumService(IYorumRepository yorumRepository,
-                            IOtelRepository otelRepository) {
+                            IOtelRepository otelRepository,
+                            KullaniciRepository kullaniciRepository) {
         this.yorumRepository = yorumRepository;
         this.otelRepository = otelRepository;
+        this.kullaniciRepository = kullaniciRepository;
     }
 
     @Override
@@ -35,7 +40,11 @@ public class OtelYorumService implements IOtelYorumService {
     private OtelYorumDto toDto(OtelYorum yorum) {
         OtelYorumDto dto = new OtelYorumDto();
         dto.setYorumId(yorum.getYorumId());
-        dto.setKullaniciAdi(yorum.getKullaniciAdi());
+        dto.setKullaniciAdi(
+                yorum.getKullanici() != null
+                        ? yorum.getKullanici().getKullaniciAdi()
+                        : null
+        );
         dto.setYorumIcerigi(yorum.getYorumIcerigi());
         dto.setPuan(yorum.getPuan());
         dto.setYorumTarihi(yorum.getYorumTarihi());
@@ -45,21 +54,27 @@ public class OtelYorumService implements IOtelYorumService {
     @Override
     public OtelYorumDto addYorum(OtelYorumDtoIU dtoIU) {
 
-        // 1 — OTEL VAR MI KONTROL
+        // 1 — OTEL VAR MI
         Otel otel = otelRepository.findById(dtoIU.getOtelId())
-                .orElseThrow(() -> new RuntimeException("Otel bulunamadı: " + dtoIU.getOtelId()));
+                .orElseThrow(() ->
+                        new RuntimeException("Otel bulunamadı: " + dtoIU.getOtelId()));
 
-        // 2 — ENTITY OLUŞTUR
+        // 2 — KULLANICI VAR MI (ID ile)
+        Kullanici kullanici = kullaniciRepository.findById(dtoIU.getKullaniciId())
+                .orElseThrow(() ->
+                        new RuntimeException("Kullanıcı bulunamadı: " + dtoIU.getKullaniciId()));
+
+        // 3 — ENTITY OLUŞTUR
         OtelYorum yorum = new OtelYorum();
         yorum.setOtel(otel);
-        yorum.setKullaniciAdi(dtoIU.getKullaniciAdi());
+        yorum.setKullanici(kullanici);
         yorum.setYorumIcerigi(dtoIU.getYorumIcerigi());
         yorum.setPuan(dtoIU.getPuan());
 
-        // 3 — KAYDET
+        // 4 — KAYDET
         OtelYorum saved = yorumRepository.save(yorum);
 
-        // 4 — DTO DÖNDÜR
+        // 5 — DTO DÖNDÜR
         return toDto(saved);
     }
 }

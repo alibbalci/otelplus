@@ -10,7 +10,7 @@ import lombok.Setter;
 import java.util.List;
 
 @Entity
-@Table(name="otel")
+@Table(name = "otel")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -19,34 +19,34 @@ public class Otel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="otel_id")
+    @Column(name = "otel_id")
     private Integer otelId;
 
-    @Column(name="otel_adi",nullable = false,unique = true)
+    @Column(name = "otel_adi", nullable = false, unique = true)
     private String otelAdi;
 
-    @Column(name="adres",nullable = false)
+    @Column(name = "adres", nullable = false)
     private String adres;
 
-    @Column(name="telefon",nullable = false,unique = true)
+    @Column(name = "telefon", nullable = false, unique = true)
     private String telefon;
 
-    @Column (name="sehir")
-    private String sehir;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sehir_id", nullable = false)
+    private Sehir sehir;
 
-    @Column (name="enlem")
+    @Column(name = "enlem")
     private Double enlem;
 
-    @Column (name="boylam")
+    @Column(name = "boylam")
     private Double boylam;
 
-    @OneToMany (mappedBy = "otel", cascade = CascadeType.ALL , orphanRemoval = true, fetch=FetchType.LAZY)
+    @OneToMany(mappedBy = "otel", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Oda> odalar;
 
-    @OneToMany (mappedBy = "otel", cascade = CascadeType.ALL , orphanRemoval = true, fetch=FetchType.LAZY)
-    private List<OtelOzellik> ozellikler ;
+    @OneToMany(mappedBy = "otel", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OtelOzellik> ozellikler;
 
-    @OneToMany (mappedBy = "otel", cascade = CascadeType.ALL , orphanRemoval = true, fetch=FetchType.LAZY)
+    @OneToMany(mappedBy = "otel", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OtelYorum> yorumlar;
-
 }

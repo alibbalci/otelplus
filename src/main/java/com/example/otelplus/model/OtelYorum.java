@@ -2,14 +2,12 @@ package com.example.otelplus.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "otel_yorum")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter @Setter
 public class OtelYorum {
 
     @Id
@@ -17,8 +15,9 @@ public class OtelYorum {
     @Column(name = "yorum_id")
     private Integer yorumId;
 
-    @Column(name = "kullanici_adi", nullable = false)
-    private String kullaniciAdi;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "kullanici_id", nullable = false)
+    private Kullanici kullanici;   // ✅ ilişki
 
     @Column(name = "yorum_icerigi", nullable = false, columnDefinition = "TEXT")
     private String yorumIcerigi;
